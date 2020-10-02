@@ -1,19 +1,16 @@
 class Amount:
     """ represents an amount of an Ingredient """
     # class attributes
-    valid_units = ['g', 'cups', 'ml', 'tsp', 'tbsp', 'EL', 'TL', 'oz', 'fl oz']
+    valid_units = ['g', 'cups', 'ml', 'tsp', 'tbsp', 'EL', 'TL', 'oz', 'fl oz',
+                   'ea', 'can']
     
-    def __init__(self, value, unit):
-        self.value = float(value)
-
-        while not isinstance(unit, str) or unit not in self.valid_units:
-            unit = input("Invalid unit of measure. Please enter 'g', 'cups',"
-                  "'ml', 'tsp', 'tbsp', 'EL', 'TL', 'oz', or 'fl oz': ")
+    def __init__(self, quantity, unit):
+        self.quantity = float(quantity)
         self.unit = str(unit)
 
 
     def __str__(self):
-        return f"{self.value} {self.unit}"
+        return f"{self.quantity} {self.unit}"
 
     # conversion functions TBD
 
@@ -58,17 +55,64 @@ class Meal:
             self.recipe[ingredient] = new_amt
 
 
-beans = Ingredient('beans', 'canned goods')
-rice = Ingredient('rice', 'dry goods')
-cumin = Ingredient('cumin', 'spices')
-recipe = {beans: Amount(400, 'g'), rice: Amount(400, 'g'),
-          cumin: Amount(1, 'EL')}
+def load_recipes(filename='recipes.txt'):
+    meals = {}
+    with open(filename) as fin:
+        line = fin.readline().strip('\n')
+        print(f"first line read: '{line}'")
+        while line != "":
+            if line == '***':
+                # beginning a new recipe; skip marker, grab name and servings
+                name = fin.readline().strip('\n')
+                print(f"just read: {name}")
+                portions = fin.readline().strip('\n').split(' ')[0]
+                print(f"just read: {portions}")
+                meals[name] = Meal(name, recipe={}, servings=portions)
+                #print("hardcore:")
+                #print(Meal(name, servings=portions))
+                print(f"Storing:")
+                print(meals[name])
 
-beans_and_rice = Meal('beans and rice', recipe)
-print(beans_and_rice)
+            # read ingredients in
+            line = fin.readline().strip('\n')
+            print(f"just read: {line}")
+            contents = line.split()
+            print(f"split up: {contents}")
+            if is_number(contents[0]):
+                # amount of ingredient is given
+                quantity = contents[0]
+                unit = contents[1]
+                ingredient_name = ' '.join(contents[2:])
+            else:
+                quantity = 0.0
+                unit = '-'
+                ingredient_name = ' '.join(contents)
 
-beans_and_rice.set_servings(2)
-print(beans_and_rice)
+            print(f"ingredient_name: {ingredient_name}")
+            print("Meal item before loading Amount:")
+            print(meals[name])
+            print("Meal item recipe:")
+            print(meals[name].recipe)
+            new_ingredient = Ingredient(ingredient_name)
+            meals[name].recipe[new_ingredient] = Amount(quantity, unit)
+            print("Meal item recipe after load attempt:")
+            print(meals[name].recipe)
+            print("Storing:")
+            print(meals[name])
+                
+    return meals
 
-beans_and_rice.set_servings(3)
-print(beans_and_rice)
+
+def is_number(string):
+    """ checks whether string is integer or float """
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
+
+meals = load_recipes()
+print("RECIPES:")
+for item in meals.keys():
+    print(meals[item])
