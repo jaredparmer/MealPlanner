@@ -69,3 +69,6 @@ print(beans_and_rice)
 
 beans_and_rice.set_servings(2)
 print(beans_and_rice)
+
+beans_and_rice.set_servings(3)
+print(beans_and_rice)
